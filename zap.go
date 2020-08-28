@@ -163,7 +163,7 @@ func (l *zaplog) Options() logger.Options {
 }
 
 // New builds a new logger based on options
-func NewLogger(opts ...logger.Option) (logger.Logger, error) {
+func NewLogger(opts ...logger.Option) logger.Logger {
 	// Default options
 	options := logger.Options{
 		Level:   logger.InfoLevel,
@@ -173,11 +173,7 @@ func NewLogger(opts ...logger.Option) (logger.Logger, error) {
 	}
 
 	l := &zaplog{opts: options}
-	if err := l.Init(opts...); err != nil {
-		return nil, err
-	}
-
-	return l, nil
+	return l
 }
 
 func loggerToZapLevel(level logger.Level) zapcore.Level {

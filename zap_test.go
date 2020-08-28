@@ -7,8 +7,8 @@ import (
 )
 
 func TestName(t *testing.T) {
-	l, err := NewLogger()
-	if err != nil {
+	l := NewLogger()
+	if err := l.Init(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -20,8 +20,8 @@ func TestName(t *testing.T) {
 }
 
 func TestLogf(t *testing.T) {
-	l, err := NewLogger()
-	if err != nil {
+	l := NewLogger()
+	if err := l.Init(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -30,10 +30,11 @@ func TestLogf(t *testing.T) {
 }
 
 func TestSetLevel(t *testing.T) {
-	l, err := NewLogger()
-	if err != nil {
+	l := NewLogger()
+	if err := l.Init(); err != nil {
 		t.Fatal(err)
 	}
+
 	logger.DefaultLogger = l
 
 	logger.Init(logger.WithLevel(logger.DebugLevel))
