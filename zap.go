@@ -3,7 +3,6 @@ package zap
 import (
 	"context"
 	"fmt"
-	"os"
 	"sync"
 
 	"go.uber.org/zap"
@@ -13,7 +12,6 @@ import (
 )
 
 type zaplog struct {
-	cfg  zap.Config
 	zap  *zap.Logger
 	opts logger.Options
 	sync.RWMutex
@@ -25,6 +23,11 @@ func (l *zaplog) Init(opts ...logger.Option) error {
 
 	for _, o := range opts {
 		o(&l.opts)
+	}
+
+	if zlog, ok := l.opts.Context.Value(loggerKey{}).(*zap.Logger); ok {
+		l.zap = zlog
+		return nil
 	}
 
 	zapConfig := zap.NewProductionConfig()
@@ -69,7 +72,6 @@ func (l *zaplog) Init(opts ...logger.Option) error {
 
 	// defer log.Sync() ??
 
-	l.cfg = zapConfig
 	l.zap = log
 	l.fields = make(map[string]interface{})
 
@@ -93,7 +95,6 @@ func (l *zaplog) Fields(fields map[string]interface{}) logger.Logger {
 	}
 
 	zl := &zaplog{
-		cfg:    l.cfg,
 		zap:    l.zap.With(data...),
 		opts:   l.opts,
 		fields: make(map[string]interface{}),
@@ -154,6 +155,10 @@ func (l *zaplog) Logf(level logger.Level, format string, args ...interface{}) {
 	}
 }
 
+func (l *zaplog) V(level logger.Level) bool {
+	return l.zap.Core().Enabled(loggerToZapLevel(level))
+}
+
 func (l *zaplog) String() string {
 	return "zap"
 }
@@ -168,7 +173,6 @@ func NewLogger(opts ...logger.Option) logger.Logger {
 	options := logger.Options{
 		Level:   logger.InfoLevel,
 		Fields:  make(map[string]interface{}),
-		Out:     os.Stderr,
 		Context: context.Background(),
 	}
 
@@ -193,6 +197,7 @@ func loggerToZapLevel(level logger.Level) zapcore.Level {
 	}
 }
 
+/*
 func zapToLoggerLevel(level zapcore.Level) logger.Level {
 	switch level {
 	case zap.DebugLevel:
@@ -209,3 +214,4 @@ func zapToLoggerLevel(level zapcore.Level) logger.Level {
 		return logger.InfoLevel
 	}
 }
+*/

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/unistack-org/micro/v3/logger"
+	"go.uber.org/zap"
 )
 
 func TestName(t *testing.T) {
@@ -37,9 +38,28 @@ func TestSetLevel(t *testing.T) {
 
 	logger.DefaultLogger = l
 
-	logger.Init(logger.WithLevel(logger.DebugLevel))
+	if err := logger.Init(logger.WithLevel(logger.DebugLevel)); err != nil {
+		t.Fatal(err)
+	}
 	l.Logf(logger.DebugLevel, "test show debug: %s", "debug msg")
 
-	logger.Init(logger.WithLevel(logger.InfoLevel))
+	if err := logger.Init(logger.WithLevel(logger.InfoLevel)); err != nil {
+		t.Fatal(err)
+	}
 	l.Logf(logger.DebugLevel, "test non-show debug: %s", "debug msg")
+}
+
+func TestWrapper(t *testing.T) {
+	z, err := zap.NewDevelopment()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	zl := NewLogger(WithLogger(z))
+	if err := zl.Init(); err != nil {
+		t.Fatal(err)
+	}
+	logger.DefaultLogger = zl
+
+	logger.Logf(logger.InfoLevel, "test logf: %s", "name")
 }

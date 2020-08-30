@@ -24,6 +24,13 @@ func WithConfig(c zap.Config) logger.Option {
 	return logger.SetOption(configKey{}, c)
 }
 
+type loggerKey struct{}
+
+// WithLogger pass *zap.Logger to logger
+func WithLogger(l *zap.Logger) logger.Option {
+	return logger.SetOption(loggerKey{}, l)
+}
+
 type encoderConfigKey struct{}
 
 // WithEncoderConfig pass zapcore.EncoderConfig to logger
