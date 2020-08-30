@@ -177,6 +177,8 @@ func NewLogger(opts ...logger.Option) logger.Logger {
 	}
 
 	l := &zaplog{opts: options}
+	_ = l.Init(opts...)
+
 	return l
 }
 
