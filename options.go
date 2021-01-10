@@ -4,7 +4,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/micro/go-micro/v2/logger"
+	"github.com/unistack-org/micro/v3/logger"
 )
 
 type Options struct {
@@ -22,6 +22,13 @@ type configKey struct{}
 // WithConfig pass zap.Config to logger
 func WithConfig(c zap.Config) logger.Option {
 	return logger.SetOption(configKey{}, c)
+}
+
+type loggerKey struct{}
+
+// WithLogger pass *zap.Logger to logger
+func WithLogger(l *zap.Logger) logger.Option {
+	return logger.SetOption(loggerKey{}, l)
 }
 
 type encoderConfigKey struct{}

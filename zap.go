@@ -1,19 +1,16 @@
 package zap
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"sync"
 
+	"github.com/unistack-org/micro/v3/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
-	"github.com/micro/go-micro/v2/logger"
 )
 
 type zaplog struct {
-	cfg  zap.Config
 	zap  *zap.Logger
 	opts logger.Options
 	sync.RWMutex
@@ -25,6 +22,11 @@ func (l *zaplog) Init(opts ...logger.Option) error {
 
 	for _, o := range opts {
 		o(&l.opts)
+	}
+
+	if zlog, ok := l.opts.Context.Value(loggerKey{}).(*zap.Logger); ok {
+		l.zap = zlog
+		return nil
 	}
 
 	zapConfig := zap.NewProductionConfig()
@@ -69,7 +71,6 @@ func (l *zaplog) Init(opts ...logger.Option) error {
 
 	// defer log.Sync() ??
 
-	l.cfg = zapConfig
 	l.zap = log
 	l.fields = make(map[string]interface{})
 
@@ -93,7 +94,6 @@ func (l *zaplog) Fields(fields map[string]interface{}) logger.Logger {
 	}
 
 	zl := &zaplog{
-		cfg:    l.cfg,
 		zap:    l.zap.With(data...),
 		opts:   l.opts,
 		fields: make(map[string]interface{}),
@@ -102,11 +102,61 @@ func (l *zaplog) Fields(fields map[string]interface{}) logger.Logger {
 	return zl
 }
 
-func (l *zaplog) Error(err error) logger.Logger {
-	return l.Fields(map[string]interface{}{"error": err})
+func (l *zaplog) Errorf(msg string, args ...interface{}) {
+	l.logf(logger.ErrorLevel, msg, args...)
 }
 
-func (l *zaplog) Log(level logger.Level, args ...interface{}) {
+func (l *zaplog) Debugf(msg string, args ...interface{}) {
+	l.logf(logger.DebugLevel, msg, args...)
+}
+
+func (l *zaplog) Infof(msg string, args ...interface{}) {
+	l.logf(logger.InfoLevel, msg, args...)
+}
+
+func (l *zaplog) Fatalf(msg string, args ...interface{}) {
+	l.logf(logger.FatalLevel, msg, args...)
+	os.Exit(1)
+}
+
+func (l *zaplog) Tracef(msg string, args ...interface{}) {
+	l.logf(logger.TraceLevel, msg, args...)
+}
+
+func (l *zaplog) Warnf(msg string, args ...interface{}) {
+	l.logf(logger.WarnLevel, msg, args...)
+}
+
+func (l *zaplog) Error(args ...interface{}) {
+	l.log(logger.ErrorLevel, args...)
+}
+
+func (l *zaplog) Debug(args ...interface{}) {
+	l.log(logger.DebugLevel, args...)
+}
+
+func (l *zaplog) Info(args ...interface{}) {
+	l.log(logger.InfoLevel, args...)
+}
+
+func (l *zaplog) Fatal(args ...interface{}) {
+	l.log(logger.FatalLevel, args...)
+	os.Exit(1)
+}
+
+func (l *zaplog) Trace(args ...interface{}) {
+	l.log(logger.TraceLevel, args...)
+}
+
+func (l *zaplog) Warn(args ...interface{}) {
+	l.log(logger.WarnLevel, args...)
+}
+
+func (l *zaplog) log(level logger.Level, args ...interface{}) {
+	if !l.V(level) {
+		return
+	}
+
 	l.RLock()
 	data := make([]zap.Field, 0, len(l.fields))
 	for k, v := range l.fields {
@@ -114,9 +164,8 @@ func (l *zaplog) Log(level logger.Level, args ...interface{}) {
 	}
 	l.RUnlock()
 
-	lvl := loggerToZapLevel(level)
 	msg := fmt.Sprint(args...)
-	switch lvl {
+	switch loggerToZapLevel(level) {
 	case zap.DebugLevel:
 		l.zap.Debug(msg, data...)
 	case zap.InfoLevel:
@@ -130,7 +179,11 @@ func (l *zaplog) Log(level logger.Level, args ...interface{}) {
 	}
 }
 
-func (l *zaplog) Logf(level logger.Level, format string, args ...interface{}) {
+func (l *zaplog) logf(level logger.Level, format string, args ...interface{}) {
+	if !l.V(level) {
+		return
+	}
+
 	l.RLock()
 	data := make([]zap.Field, 0, len(l.fields))
 	for k, v := range l.fields {
@@ -138,9 +191,8 @@ func (l *zaplog) Logf(level logger.Level, format string, args ...interface{}) {
 	}
 	l.RUnlock()
 
-	lvl := loggerToZapLevel(level)
 	msg := fmt.Sprintf(format, args...)
-	switch lvl {
+	switch loggerToZapLevel(level) {
 	case zap.DebugLevel:
 		l.zap.Debug(msg, data...)
 	case zap.InfoLevel:
@@ -152,6 +204,10 @@ func (l *zaplog) Logf(level logger.Level, format string, args ...interface{}) {
 	case zap.FatalLevel:
 		l.zap.Fatal(msg, data...)
 	}
+}
+
+func (l *zaplog) V(level logger.Level) bool {
+	return l.zap.Core().Enabled(loggerToZapLevel(level))
 }
 
 func (l *zaplog) String() string {
@@ -163,21 +219,9 @@ func (l *zaplog) Options() logger.Options {
 }
 
 // New builds a new logger based on options
-func NewLogger(opts ...logger.Option) (logger.Logger, error) {
-	// Default options
-	options := logger.Options{
-		Level:   logger.InfoLevel,
-		Fields:  make(map[string]interface{}),
-		Out:     os.Stderr,
-		Context: context.Background(),
-	}
-
-	l := &zaplog{opts: options}
-	if err := l.Init(opts...); err != nil {
-		return nil, err
-	}
-
-	return l, nil
+func NewLogger(opts ...logger.Option) logger.Logger {
+	l := &zaplog{opts: logger.NewOptions(opts...)}
+	return l
 }
 
 func loggerToZapLevel(level logger.Level) zapcore.Level {
@@ -197,6 +241,7 @@ func loggerToZapLevel(level logger.Level) zapcore.Level {
 	}
 }
 
+/*
 func zapToLoggerLevel(level zapcore.Level) logger.Level {
 	switch level {
 	case zap.DebugLevel:
@@ -213,3 +258,4 @@ func zapToLoggerLevel(level zapcore.Level) logger.Level {
 		return logger.InfoLevel
 	}
 }
+*/

@@ -3,12 +3,13 @@ package zap
 import (
 	"testing"
 
-	"github.com/micro/go-micro/v2/logger"
+	"github.com/unistack-org/micro/v3/logger"
+	"go.uber.org/zap"
 )
 
 func TestName(t *testing.T) {
-	l, err := NewLogger()
-	if err != nil {
+	l := NewLogger()
+	if err := l.Init(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -20,25 +21,45 @@ func TestName(t *testing.T) {
 }
 
 func TestLogf(t *testing.T) {
-	l, err := NewLogger()
-	if err != nil {
+	l := NewLogger()
+	if err := l.Init(); err != nil {
 		t.Fatal(err)
 	}
 
 	logger.DefaultLogger = l
-	logger.Logf(logger.InfoLevel, "test logf: %s", "name")
+	logger.Infof("test logf: %s", "name")
 }
 
 func TestSetLevel(t *testing.T) {
-	l, err := NewLogger()
+	l := NewLogger()
+	if err := l.Init(); err != nil {
+		t.Fatal(err)
+	}
+
+	logger.DefaultLogger = l
+
+	if err := logger.Init(logger.WithLevel(logger.DebugLevel)); err != nil {
+		t.Fatal(err)
+	}
+	l.Debugf("test show debug: %s", "debug msg")
+
+	if err := logger.Init(logger.WithLevel(logger.InfoLevel)); err != nil {
+		t.Fatal(err)
+	}
+	l.Debugf("test non-show debug: %s", "debug msg")
+}
+
+func TestWrapper(t *testing.T) {
+	z, err := zap.NewDevelopment()
 	if err != nil {
 		t.Fatal(err)
 	}
-	logger.DefaultLogger = l
 
-	logger.Init(logger.WithLevel(logger.DebugLevel))
-	l.Logf(logger.DebugLevel, "test show debug: %s", "debug msg")
+	zl := NewLogger(WithLogger(z))
+	if err := zl.Init(); err != nil {
+		t.Fatal(err)
+	}
+	logger.DefaultLogger = zl
 
-	logger.Init(logger.WithLevel(logger.InfoLevel))
-	l.Logf(logger.DebugLevel, "test non-show debug: %s", "debug msg")
+	logger.Infof("test logf: %s", "name")
 }
