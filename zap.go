@@ -1,6 +1,7 @@
 package zap
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sync"
@@ -102,57 +103,57 @@ func (l *zaplog) Fields(fields map[string]interface{}) logger.Logger {
 	return zl
 }
 
-func (l *zaplog) Errorf(msg string, args ...interface{}) {
-	l.logf(logger.ErrorLevel, msg, args...)
+func (l *zaplog) Errorf(ctx context.Context, msg string, args ...interface{}) {
+	l.Logf(ctx, logger.ErrorLevel, msg, args...)
 }
 
-func (l *zaplog) Debugf(msg string, args ...interface{}) {
-	l.logf(logger.DebugLevel, msg, args...)
+func (l *zaplog) Debugf(ctx context.Context, msg string, args ...interface{}) {
+	l.Logf(ctx, logger.DebugLevel, msg, args...)
 }
 
-func (l *zaplog) Infof(msg string, args ...interface{}) {
-	l.logf(logger.InfoLevel, msg, args...)
+func (l *zaplog) Infof(ctx context.Context, msg string, args ...interface{}) {
+	l.Logf(ctx, logger.InfoLevel, msg, args...)
 }
 
-func (l *zaplog) Fatalf(msg string, args ...interface{}) {
-	l.logf(logger.FatalLevel, msg, args...)
+func (l *zaplog) Fatalf(ctx context.Context, msg string, args ...interface{}) {
+	l.Logf(ctx, logger.FatalLevel, msg, args...)
 	os.Exit(1)
 }
 
-func (l *zaplog) Tracef(msg string, args ...interface{}) {
-	l.logf(logger.TraceLevel, msg, args...)
+func (l *zaplog) Tracef(ctx context.Context, msg string, args ...interface{}) {
+	l.Logf(ctx, logger.TraceLevel, msg, args...)
 }
 
-func (l *zaplog) Warnf(msg string, args ...interface{}) {
-	l.logf(logger.WarnLevel, msg, args...)
+func (l *zaplog) Warnf(ctx context.Context, msg string, args ...interface{}) {
+	l.Logf(ctx, logger.WarnLevel, msg, args...)
 }
 
-func (l *zaplog) Error(args ...interface{}) {
-	l.log(logger.ErrorLevel, args...)
+func (l *zaplog) Error(ctx context.Context, args ...interface{}) {
+	l.Log(ctx, logger.ErrorLevel, args...)
 }
 
-func (l *zaplog) Debug(args ...interface{}) {
-	l.log(logger.DebugLevel, args...)
+func (l *zaplog) Debug(ctx context.Context, args ...interface{}) {
+	l.Log(ctx, logger.DebugLevel, args...)
 }
 
-func (l *zaplog) Info(args ...interface{}) {
-	l.log(logger.InfoLevel, args...)
+func (l *zaplog) Info(ctx context.Context, args ...interface{}) {
+	l.Log(ctx, logger.InfoLevel, args...)
 }
 
-func (l *zaplog) Fatal(args ...interface{}) {
-	l.log(logger.FatalLevel, args...)
+func (l *zaplog) Fatal(ctx context.Context, args ...interface{}) {
+	l.Log(ctx, logger.FatalLevel, args...)
 	os.Exit(1)
 }
 
-func (l *zaplog) Trace(args ...interface{}) {
-	l.log(logger.TraceLevel, args...)
+func (l *zaplog) Trace(ctx context.Context, args ...interface{}) {
+	l.Log(ctx, logger.TraceLevel, args...)
 }
 
-func (l *zaplog) Warn(args ...interface{}) {
-	l.log(logger.WarnLevel, args...)
+func (l *zaplog) Warn(ctx context.Context, args ...interface{}) {
+	l.Log(ctx, logger.WarnLevel, args...)
 }
 
-func (l *zaplog) log(level logger.Level, args ...interface{}) {
+func (l *zaplog) Log(ctx context.Context, level logger.Level, args ...interface{}) {
 	if !l.V(level) {
 		return
 	}
@@ -179,7 +180,7 @@ func (l *zaplog) log(level logger.Level, args ...interface{}) {
 	}
 }
 
-func (l *zaplog) logf(level logger.Level, format string, args ...interface{}) {
+func (l *zaplog) Logf(ctx context.Context, level logger.Level, format string, args ...interface{}) {
 	if !l.V(level) {
 		return
 	}

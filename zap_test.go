@@ -1,6 +1,7 @@
 package zap
 
 import (
+	"context"
 	"testing"
 
 	"github.com/unistack-org/micro/v3/logger"
@@ -27,7 +28,7 @@ func TestLogf(t *testing.T) {
 	}
 
 	logger.DefaultLogger = l
-	logger.Infof("test logf: %s", "name")
+	logger.Infof(context.TODO(), "test logf: %s", "name")
 }
 
 func TestSetLevel(t *testing.T) {
@@ -41,12 +42,12 @@ func TestSetLevel(t *testing.T) {
 	if err := logger.Init(logger.WithLevel(logger.DebugLevel)); err != nil {
 		t.Fatal(err)
 	}
-	l.Debugf("test show debug: %s", "debug msg")
+	l.Debugf(context.TODO(), "test show debug: %s", "debug msg")
 
 	if err := logger.Init(logger.WithLevel(logger.InfoLevel)); err != nil {
 		t.Fatal(err)
 	}
-	l.Debugf("test non-show debug: %s", "debug msg")
+	l.Debugf(context.TODO(), "test non-show debug: %s", "debug msg")
 }
 
 func TestWrapper(t *testing.T) {
@@ -61,5 +62,5 @@ func TestWrapper(t *testing.T) {
 	}
 	logger.DefaultLogger = zl
 
-	logger.Infof("test logf: %s", "name")
+	logger.Infof(context.TODO(), "test logf: %s", "name")
 }
