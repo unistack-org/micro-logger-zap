@@ -7,10 +7,6 @@ import (
 	"github.com/unistack-org/micro/v3/logger"
 )
 
-type Options struct {
-	logger.Options
-}
-
 type callerSkipKey struct{}
 
 func WithCallerSkip(i int) logger.Option {
