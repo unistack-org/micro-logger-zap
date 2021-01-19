@@ -1,9 +1,9 @@
-module github.com/unistack-org/micro-logger-zap
+module github.com/unistack-org/micro-logger-zap/v3
 
 go 1.15
 
 require (
-	github.com/pkg/errors v0.9.1 // indirect
-	github.com/unistack-org/micro/v3 v3.0.2-0.20210112062614-49d54f7fe61f
+	github.com/unistack-org/micro/v3 v3.1.3
 	go.uber.org/zap v1.16.0
+	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
