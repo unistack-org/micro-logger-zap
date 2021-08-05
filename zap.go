@@ -58,9 +58,9 @@ func (l *zaplog) Init(opts ...logger.Option) error {
 
 	// Adding seed fields if exist
 	if l.opts.Fields != nil {
-		data := []zap.Field{}
-		for k, v := range l.opts.Fields {
-			data = append(data, zap.Any(k, v))
+		data := make([]zap.Field, 0, len(l.opts.Fields)/2)
+		for i := 0; i < len(l.opts.Fields); i += 2 {
+			data = append(data, zap.Any(l.opts.Fields[i].(string), l.opts.Fields[i+1]))
 		}
 		log = log.With(data...)
 	}
@@ -73,31 +73,19 @@ func (l *zaplog) Init(opts ...logger.Option) error {
 	// defer log.Sync() ??
 
 	l.zap = log
-	l.fields = make(map[string]interface{})
 
 	return nil
 }
 
-func (l *zaplog) Fields(fields map[string]interface{}) logger.Logger {
-	l.Lock()
-	nfields := make(map[string]interface{}, len(l.fields))
-	for k, v := range l.fields {
-		nfields[k] = v
-	}
-	l.Unlock()
-	for k, v := range fields {
-		nfields[k] = v
-	}
-
-	data := make([]zap.Field, 0, len(nfields))
-	for k, v := range fields {
-		data = append(data, zap.Any(k, v))
+func (l *zaplog) Fields(fields ...interface{}) logger.Logger {
+	data := make([]zap.Field, 0, len(fields)/2)
+	for i := 0; i < len(fields); i += 2 {
+		data = append(data, zap.Any(fields[i].(string), fields[i+1]))
 	}
 
 	zl := &zaplog{
-		zap:    l.zap.With(data...),
-		opts:   l.opts,
-		fields: make(map[string]interface{}),
+		zap:  l.zap.With(data...),
+		opts: l.opts,
 	}
 
 	return zl
