@@ -1,4 +1,4 @@
-package zap
+package zap // import "go.unistack.org/micro-logger-zap/v3"
 
 import (
 	"context"
@@ -6,16 +6,26 @@ import (
 	"os"
 	"sync"
 
-	"github.com/unistack-org/micro/v3/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"go.unistack.org/micro/v3/logger"
 )
 
 type zaplog struct {
 	zap  *zap.Logger
 	opts logger.Options
 	sync.RWMutex
-	fields map[string]interface{}
+}
+
+func (l *zaplog) Level(lvl logger.Level) {
+}
+
+func (l *zaplog) Clone(opts ...logger.Option) logger.Logger {
+	nl := &zaplog{zap: l.zap, opts: l.opts}
+	for _, o := range opts {
+		o(&nl.opts)
+	}
+	return nl
 }
 
 func (l *zaplog) Init(opts ...logger.Option) error {
@@ -37,7 +47,6 @@ func (l *zaplog) Init(opts ...logger.Option) error {
 
 	if zcconfig, ok := l.opts.Context.Value(encoderConfigKey{}).(zapcore.EncoderConfig); ok {
 		zapConfig.EncoderConfig = zcconfig
-
 	}
 
 	skip, ok := l.opts.Context.Value(callerSkipKey{}).(int)
@@ -146,25 +155,18 @@ func (l *zaplog) Log(ctx context.Context, level logger.Level, args ...interface{
 		return
 	}
 
-	l.RLock()
-	data := make([]zap.Field, 0, len(l.fields))
-	for k, v := range l.fields {
-		data = append(data, zap.Any(k, v))
-	}
-	l.RUnlock()
-
 	msg := fmt.Sprint(args...)
 	switch loggerToZapLevel(level) {
 	case zap.DebugLevel:
-		l.zap.Debug(msg, data...)
+		l.zap.Debug(msg)
 	case zap.InfoLevel:
-		l.zap.Info(msg, data...)
+		l.zap.Info(msg)
 	case zap.WarnLevel:
-		l.zap.Warn(msg, data...)
+		l.zap.Warn(msg)
 	case zap.ErrorLevel:
-		l.zap.Error(msg, data...)
+		l.zap.Error(msg)
 	case zap.FatalLevel:
-		l.zap.Fatal(msg, data...)
+		l.zap.Fatal(msg)
 	}
 }
 
@@ -173,25 +175,18 @@ func (l *zaplog) Logf(ctx context.Context, level logger.Level, format string, ar
 		return
 	}
 
-	l.RLock()
-	data := make([]zap.Field, 0, len(l.fields))
-	for k, v := range l.fields {
-		data = append(data, zap.Any(k, v))
-	}
-	l.RUnlock()
-
 	msg := fmt.Sprintf(format, args...)
 	switch loggerToZapLevel(level) {
 	case zap.DebugLevel:
-		l.zap.Debug(msg, data...)
+		l.zap.Debug(msg)
 	case zap.InfoLevel:
-		l.zap.Info(msg, data...)
+		l.zap.Info(msg)
 	case zap.WarnLevel:
-		l.zap.Warn(msg, data...)
+		l.zap.Warn(msg)
 	case zap.ErrorLevel:
-		l.zap.Error(msg, data...)
+		l.zap.Error(msg)
 	case zap.FatalLevel:
-		l.zap.Fatal(msg, data...)
+		l.zap.Fatal(msg)
 	}
 }
 

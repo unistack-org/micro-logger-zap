@@ -4,7 +4,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/unistack-org/micro/v3/logger"
+	"go.unistack.org/micro/v3/logger"
 )
 
 type callerSkipKey struct{}

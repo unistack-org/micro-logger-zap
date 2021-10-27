@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/unistack-org/micro/v3/logger"
 	"go.uber.org/zap"
+	"go.unistack.org/micro/v3/logger"
 )
 
 func TestName(t *testing.T) {
