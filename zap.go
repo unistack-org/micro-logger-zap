@@ -65,6 +65,14 @@ func (l *zaplog) Init(opts ...logger.Option) error {
 		return err
 	}
 
+	log = log.WithOptions(zap.WrapCore(func(c zapcore.Core) zapcore.Core {
+		return zapcore.NewCore(
+			zapcore.NewJSONEncoder(zapConfig.EncoderConfig),
+			zapcore.Lock(zapcore.AddSync(l.opts.Out)),
+			loggerToZapLevel(l.opts.Level),
+		)
+	}))
+
 	// Adding seed fields if exist
 	if l.opts.Fields != nil {
 		data := make([]zap.Field, 0, len(l.opts.Fields)/2)
